@@ -1,18 +1,28 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const ejs = require('ejs');
 const path = require('path');
+const Blog = require('./models/Blog')
 
 const app = express();
+
+//! Connect DB
+mongoose.connect('mongodb://127.0.0.1:27017/blog-db');
 
 //! Template Engine
 app.set('view engine', 'ejs');
 
 //! Middlewares
 app.use(express.static('public'));
+app.use(express.urlencoded({extended:true}));
+app.use(express.json());
 
 //! Routes
-app.get('/', (req,res) => {
-  res.render('index');
+app.get('/', async (req,res) => {
+  const blogs = await Blog.find({});
+  res.render('index', {
+    blogs
+  });
 });
 
 app.get('/about', (req,res) => {
@@ -21,6 +31,11 @@ app.get('/about', (req,res) => {
 
 app.get('/add_post', (req,res) => {
   res.render('add_post');
+});
+
+app.post('/blogs', async (req,res) => {
+  await Blog.create(req.body);
+  res.redirect('/');
 });
 
 const port = 3000;
